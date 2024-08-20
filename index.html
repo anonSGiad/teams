@@ -44,7 +44,7 @@
         }
         .form-container select,
         .form-container input {
-            width: 100%;
+            width: calc(100% - 20px);
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ddd;
@@ -75,7 +75,7 @@
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-            width: calc(50% - 20px);
+            width: calc(25% - 20px);
             box-sizing: border-box;
             min-width: 250px;
             text-align: left;
@@ -138,8 +138,7 @@
             margin-bottom: 10px;
         }
         .team-container {
-            width: 100%;
-            max-width: 300px;
+            width: calc(25% - 20px); /* Adjust width to fit 4 teams in a row */
         }
         #create-teams-button {
             background-color: #28a745; /* Green color */
