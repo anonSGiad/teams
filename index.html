@@ -140,6 +140,11 @@
         .team-container {
             width: calc(25% - 20px); /* Adjust width to fit 4 teams in a row */
         }
+        #button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
         #create-teams-button {
             background-color: #28a745; /* Green color */
             color: #fff;
@@ -148,8 +153,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            margin-top: 20px;
-            display: none; /* Hidden by default */
+            display: none; /* Hidden initially */
         }
         #create-teams-button:hover {
             background-color: #218838;
@@ -204,61 +208,57 @@
 
         <div id="arrays-container" class="arrays-wrapper"></div>
 
-        <div id="teams-container" class="teams-wrapper">
+        <div class="teams-wrapper">
             <div class="teams-container" id="teams-container"></div>
             <div id="substitutes-container" class="teams-wrapper"></div>
         </div>
 
-        <button type="button" id="create-teams-button">Create Teams</button>
+        <div id="button-container">
+            <button type="button" id="create-teams-button">Create Teams</button>
+        </div>
     </div>
 
     <script>
         // Arrays to hold user-defined players
-        const userArrays = {
+        let userArrays = {
             GKs: [],
             Defense: [],
             Midfield: [],
             Forward: []
         };
 
-        // Store selected formation
-        let selectedFormation = null;
+        let selectedFormation = '';
 
-        // Function to update the display of arrays
+        // Function to display arrays in the form
         function displayArrays() {
-            const container = document.getElementById('arrays-container');
-            container.innerHTML = ''; // Clear existing content
+            const arraysContainer = document.getElementById('arrays-container');
+            arraysContainer.innerHTML = '';
 
-            Object.keys(userArrays).forEach((position) => {
-                const array = userArrays[position];
-                if (array.length === 0) return; // Skip empty positions
+            for (const [position, players] of Object.entries(userArrays)) {
+                if (players.length > 0) {
+                    const arrayDiv = document.createElement('div');
+                    arrayDiv.classList.add('array-container');
 
-                const div = document.createElement('div');
-                div.classList.add('array-container');
+                    const header = document.createElement('div');
+                    header.classList.add('array-header');
+                    header.textContent = `${position} (${players.length})`;
+                    arrayDiv.appendChild(header);
 
-                const header = document.createElement('div');
-                header.classList.add('array-header');
-                header.innerHTML = `
-                    ${position} <span class="array-count">(${array.length} players)</span>
-                `;
-                div.appendChild(header);
+                    const list = document.createElement('ul');
+                    list.classList.add('array-list');
+                    players.forEach(player => {
+                        const li = document.createElement('li');
+                        li.textContent = player;
+                        list.appendChild(li);
+                    });
 
-                const ul = document.createElement('ul');
-                ul.classList.add('array-list');
-                array.forEach(name => {
-                    const li = document.createElement('li');
-                    li.textContent = name;
-                    ul.appendChild(li);
-                });
-                div.appendChild(ul);
+                    arrayDiv.appendChild(list);
+                    arraysContainer.appendChild(arrayDiv);
+                }
+            }
 
-                container.appendChild(div);
-            });
-
-            // Show Create Teams button if all arrays have data and formation is selected
-            if (userArrays.GKs.length > 0 && userArrays.Defense.length > 0 &&
-                userArrays.Midfield.length > 0 && userArrays.Forward.length > 0 &&
-                selectedFormation) {
+            // Show Create Teams button if all arrays have data and a formation is selected
+            if (userArrays.GKs.length > 0 && userArrays.Defense.length > 0 && userArrays.Midfield.length > 0 && userArrays.Forward.length > 0 && selectedFormation) {
                 document.getElementById('create-teams-button').style.display = 'inline-block';
             } else {
                 document.getElementById('create-teams-button').style.display = 'none';
@@ -294,34 +294,28 @@
             }
 
             // Extract positions and shuffle arrays
-            const GKs = userArrays.GKs;
-            const Defense = userArrays.Defense;
-            const Midfield = userArrays.Midfield;
-            const Forward = userArrays.Forward;
+            let GKs = shuffleArray([...userArrays.GKs]);
+            let Defense = shuffleArray([...userArrays.Defense]);
+            let Midfield = shuffleArray([...userArrays.Midfield]);
+            let Forward = shuffleArray([...userArrays.Forward]);
 
             if (GKs.length < 1 || Defense.length < formationParts[0] || Midfield.length < formationParts[1] || Forward.length < formationParts[2]) {
                 teamsContainer.innerHTML = '<p>Not enough players for the selected formation. Please add more players.</p>';
                 return;
             }
 
-            // Shuffle arrays
-            const shuffledGKs = shuffleArray([...GKs]);
-            const shuffledDefense = shuffleArray([...Defense]);
-            const shuffledMidfield = shuffleArray([...Midfield]);
-            const shuffledForward = shuffleArray([...Forward]);
-
             // Calculate number of teams
             const numTeams = Math.min(
-                Math.floor(shuffledGKs.length / 1), // 1 GK per team
-                Math.floor(shuffledDefense.length / formationParts[0]), // Formation-dependent number of Defenders
-                Math.floor(shuffledMidfield.length / formationParts[1]), // Formation-dependent number of Midfielders
-                Math.floor(shuffledForward.length / formationParts[2]) // Formation-dependent number of Forwards
+                Math.floor(GKs.length / 1), // 1 GK per team
+                Math.floor(Defense.length / formationParts[0]), // Formation-dependent number of Defenders
+                Math.floor(Midfield.length / formationParts[1]), // Formation-dependent number of Midfielders
+                Math.floor(Forward.length / formationParts[2]) // Formation-dependent number of Forwards
             );
 
-            let teamGKs = shuffledGKs.slice(0, numTeams);
-            let teamDefense = shuffledDefense.slice(0, numTeams * formationParts[0]);
-            let teamMidfield = shuffledMidfield.slice(0, numTeams * formationParts[1]);
-            let teamForward = shuffledForward.slice(0, numTeams * formationParts[2]);
+            let teamGKs = GKs.slice(0, numTeams);
+            let teamDefense = Defense.slice(0, numTeams * formationParts[0]);
+            let teamMidfield = Midfield.slice(0, numTeams * formationParts[1]);
+            let teamForward = Forward.slice(0, numTeams * formationParts[2]);
 
             // Define team names
             const teamNames = ['Green Team', 'Black Team', 'Orange Team', 'White Team'];
@@ -345,7 +339,7 @@
 
             // Determine substitutes
             const allUsedPlayers = teams.flatMap(team => team.players.map(player => player.name));
-            const allPlayers = [...GKs, ...Defense, ...Midfield, ...Forward];
+            const allPlayers = [...userArrays.GKs, ...userArrays.Defense, ...userArrays.Midfield, ...userArrays.Forward];
             const substitutes = allPlayers.filter(player => !allUsedPlayers.includes(player));
 
             // Display teams
@@ -440,7 +434,7 @@
 
         // Handle Create Teams button click
         document.getElementById('create-teams-button').addEventListener('click', function() {
-            // Generate and display teams
+            // Generate and display new teams
             generateTeams();
         });
     </script>
